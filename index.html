@@ -2154,7 +2154,7 @@ const dfLabel = d => ['', 'Muy fácil', 'Fácil', 'Intermedia'][d];
 const allExcl = () => [...S.q.excl, ...DB.profile.excl];
 /* BLOQUEO DURO: alergias (kind:'allergy') de la búsqueda y del perfil que contiene la receta (con sustituciones opcionales) */
 const blockedByAllergy = (r, subs) => !!r && allergyHits(r, allExcl(), subs).length > 0;
-const allergyLabels = (r, subs) => allergyHits(r, allExcl(), subs).map(x => x.label).join(', ');
+const allergyLabels = (r, subs) => allergyHits(r, allExcl(), subs).map(x => escH(x.label)).join(', ');
 const escH = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const R_BY = id => RECIPES.find(r => r.id === id);
 const f1 = n => (Math.round(n * 10) / 10).toString().replace('.', ',');
@@ -2171,7 +2171,7 @@ function photo(r, big) {
   const c = (CUS[r.cu[0]] || ['#6c8', ''])[0];
   const ie = IMG[r.id]; const custom = PH[r.id] || (ie && (ie.u || ie));
   const emo = mainEmojis(r).map(e => `<span>${e}</span>`).join('');
-  const img = custom ? `<img loading="lazy" alt="${r.n}" src="${custom}" onerror="var c=this.parentNode.querySelector('.pend');if(c)c.textContent='Foto no disponible (¿sin conexión?) · puedes añadir la tuya';this.remove()">` : '';
+  const img = custom ? `<img loading="lazy" alt="${r.n}" src="${escH(custom)}" onerror="var c=this.parentNode.querySelector('.pend');if(c)c.textContent='Foto no disponible (¿sin conexión?) · puedes añadir la tuya';this.remove()">` : '';
   const cap = !custom && big ? '' : (custom && ie && ie.l && big ? `<span class="pend">© ${ie.a || ''} · ${ie.l}${ie.n ? ' · foto ilustrativa' : ''}</span>` : '');
   return `<div class="ph" style="background:radial-gradient(circle at 20% 15%,${c}55,transparent 55%),linear-gradient(135deg,${c},${c}aa 60%,#f3e9d4)"><div class="plate" style="${big ? 'width:44%' : ''}">${emo}</div>${img}${cap}</div>`;
 }
@@ -2279,7 +2279,7 @@ function nauseaBlock() {
   <p class="muted">Tu perfil se guarda en este dispositivo y modifica la selección de recetas. No hay alimentos universalmente mejor tolerados.</p>`;
 }
 function exclChips(list, perm) {
-  return list.map((x, i) => `<span class="chip tag ${x.kind === 'allergy' ? 'red' : ''} ${perm ? 'lock' : ''}">${x.kind === 'allergy' ? '⚠ Alergia/intolerancia' : '🚫 Preferencia'}: ${x.label}
+  return list.map((x, i) => `<span class="chip tag ${x.kind === 'allergy' ? 'red' : ''} ${perm ? 'lock' : ''}">${x.kind === 'allergy' ? '⚠ Alergia/intolerancia' : '🚫 Preferencia'}: ${escH(x.label)}
   <button class="chip" style="min-height:28px;padding:2px 9px;font-size:12px" data-a="${perm ? 'pkind' : 'ekind'}" data-i="${i}">${x.kind === 'allergy' ? 'pasar a preferencia' : 'marcar como alergia'}</button>
   <span class="x" data-a="${perm ? 'prem' : 'erem'}" data-i="${i}" role="button" aria-label="Quitar">✕</span></span>`).join('');
 }
@@ -2288,8 +2288,8 @@ function nameSearchHTML(v) {
   const w = t.split(/\s+/); const ex = allExcl(); const pf = ex.filter(x => x.kind !== 'allergy');
   const found = SAFE.filter(r => { const n = norm(r.n); return w.every(x => n.includes(x)); }).map(r => ({ r, a: allergyHits(r, ex), p: pf.filter(x => r.keys.has(x.key)) }));
   const ok = found.filter(h => !h.a.length).sort((x, y) => x.p.length - y.p.length).slice(0, 12), bl = found.filter(h => h.a.length).slice(0, 4);
-  const okH = ok.map(h => `<button data-a="open" data-id="${h.r.id}"><span>${h.r.n}</span><small>${h.p.length ? '🚫 evitas: ' + h.p.map(x => x.label).join(', ') : (h.r.safety.cat === 'APTA' ? 'apta' : 'con precauciones')}</small></button>`).join('');
-  const blH = bl.map(h => `<div class="blk" aria-disabled="true"><span>⛔ ${h.r.n}</span><small>Alergia: ${h.a.map(x => x.label).join(', ')}</small></div>`).join('');
+  const okH = ok.map(h => `<button data-a="open" data-id="${h.r.id}"><span>${h.r.n}</span><small>${h.p.length ? '🚫 evitas: ' + h.p.map(x => escH(x.label)).join(', ') : (h.r.safety.cat === 'APTA' ? 'apta' : 'con precauciones')}</small></button>`).join('');
+  const blH = bl.map(h => `<div class="blk" aria-disabled="true"><span>⛔ ${h.r.n}</span><small>Alergia: ${h.a.map(x => escH(x.label)).join(', ')}</small></div>`).join('');
   return okH + blH || '<div class="muted" style="padding:10px 14px">Ninguna receta coincide con «' + String(v).replace(/[<>&"]/g, '') + '».</div>';
 }
 
@@ -2324,9 +2324,9 @@ function viewHome() {
   <div class="cuis">${Object.keys(NAMES).map(c => `<button class="cu ${q.cuisines.includes(c) && !q.surprise ? 'on' : ''}" data-a="cuis" data-v="${c}" style="background:linear-gradient(135deg,${CUS[c][0]},${CUS[c][0]}99 70%,#00000033)"><span class="em">${CUS[c][1]}</span><span class="lb">${NAMES[c]}</span></button>`).join('')}
   <button class="cu ${q.surprise ? 'on' : ''}" data-a="surprise" style="background:linear-gradient(135deg,#C4694A,#E6B27A)"><span class="em">🎲</span><span class="lb">Sorpréndeme</span></button></div></section>
   <section class="sec"><h2>✅ Ingredientes obligatorios</h2><p class="sub">Aparecerán realmente en cada receta; nunca se sustituyen en silencio, ni pasan por encima de la seguridad.</p>${acBox('req', 'Busca un ingrediente (p. ej. pollo, salmón, aguacate…)')}
-  <div class="chips">${q.req.map((x, i) => `<span class="chip tag">${x.label}<span class="x" data-a="rrem" data-i="${i}" role="button" aria-label="Quitar">✕</span></span>`).join('') || '<span class="muted">Sin ingredientes obligatorios</span>'}</div></section>
+  <div class="chips">${q.req.map((x, i) => `<span class="chip tag">${escH(x.label)}<span class="x" data-a="rrem" data-i="${i}" role="button" aria-label="Quitar">✕</span></span>`).join('') || '<span class="muted">Sin ingredientes obligatorios</span>'}</div></section>
   <section class="sec"><h2>🚫 Ingredientes que quiero evitar</h2><p class="sub">Ingredientes, familias, alérgenos, sabores o características. Las <b>alergias</b> se respetan siempre; las <b>preferencias</b> se pueden flexibilizar si no hay suficientes recetas.</p>${acBox('excl', 'Pescado, ajo, picante, lácteos, gluten, fritos, olores intensos…')}
-  <div class="chips">${exclChips(q.excl, false)}${DB.profile.excl.map(x => `<span class="chip tag lock">🔒 Perfil: ${x.label}${x.kind === 'allergy' ? ' (alergia)' : ''}</span>`).join('')}</div></section>
+  <div class="chips">${exclChips(q.excl, false)}${DB.profile.excl.map(x => `<span class="chip tag lock">🔒 Perfil: ${escH(x.label)}${x.kind === 'allergy' ? ' (alergia)' : ''}</span>`).join('')}</div></section>
   <section class="sec"><h2>⏱ Tiempo disponible</h2><div class="seg">${[['10', 'Menos de 10 min'], ['20', '10-20 min'], ['30', '20-30 min'], ['45', '30-45 min'], ['any', 'Sin límite']].map(t => `<button class="${q.time === t[0] ? 'on' : ''}" data-a="time" data-v="${t[0]}">${t[1]}</button>`).join('')}</div></section>
   <div class="row"><section class="sec grow"><h2>👥 Comensales</h2><div class="stepper" style="margin-top:8px">${[1, 2, 3, 4, 5, 6].map(n => `<button class="chip ${q.diners === n ? 'on' : ''}" style="min-width:46px;justify-content:center" data-a="diners" data-v="${n}">${n}</button>`).join('')}</div></section>
   <section class="sec grow"><h2>👩‍🍳 Complejidad</h2><div class="seg" style="margin-top:8px">${[['vf', 'Muy fácil'], ['f', 'Fácil'], ['mid', 'Intermedia'], ['any', 'Me da igual']].map(t => `<button class="${q.diff === t[0] ? 'on' : ''}" data-a="diff" data-v="${t[0]}">${t[1]}</button>`).join('')}</div></section></div>
@@ -2472,9 +2472,9 @@ function pickerModal() {
   list = list.filter(Boolean); const t = norm(text || ''); if (t) list = list.filter(r => norm(r.n).includes(t));
   const info = list.map(r => ({ r, a: allergyHits(r, ex), p: pf.filter(x => r.keys.has(x.key)) }));
   const ok = info.filter(h => !h.a.length).sort((x, y) => x.p.length - y.p.length), bl = info.filter(h => h.a.length);
-  const okH = ok.slice(0, 40).map(h => `<button class="btn" style="width:100%;justify-content:space-between;margin:4px 0" data-a="assign" data-id="${h.r.id}"><span style="text-align:left">${h.r.n}${h.p.length ? `<br><small class="soft">🚫 Evitas: ${h.p.map(x => x.label).join(', ')} (preferencia)</small>` : ''}</span><span class="muted">${h.r.total} min</span></button>`).join('');
-  const blRow = h => `<div class="blk" aria-disabled="true"><span>⛔ ${h.r.n}</span><small>Alergia: ${h.a.map(x => x.label).join(', ')} · no se puede añadir</small></div>`;
-  const blH = tab === 'all' ? (bl.length ? `<div class="blk" aria-disabled="true"><span>⛔ ${bl.length} receta(s) ocultas por alergia</span><small>${[...new Set(bl.flatMap(h => h.a.map(x => x.label)))].join(', ')}</small></div>` : '') : bl.map(blRow).join('');
+  const okH = ok.slice(0, 40).map(h => `<button class="btn" style="width:100%;justify-content:space-between;margin:4px 0" data-a="assign" data-id="${h.r.id}"><span style="text-align:left">${h.r.n}${h.p.length ? `<br><small class="soft">🚫 Evitas: ${h.p.map(x => escH(x.label)).join(', ')} (preferencia)</small>` : ''}</span><span class="muted">${h.r.total} min</span></button>`).join('');
+  const blRow = h => `<div class="blk" aria-disabled="true"><span>⛔ ${h.r.n}</span><small>Alergia: ${h.a.map(x => escH(x.label)).join(', ')} · no se puede añadir</small></div>`;
+  const blH = tab === 'all' ? (bl.length ? `<div class="blk" aria-disabled="true"><span>⛔ ${bl.length} receta(s) ocultas por alergia</span><small>${[...new Set(bl.flatMap(h => h.a.map(x => x.label)))].map(escH).join(', ')}</small></div>` : '') : bl.map(blRow).join('');
   return `<h2>${SLOT_LABEL[s]} · ${new Date(d + 'T12:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h2>
   <label class="chip ${S.pick.lo ? 'on' : ''}" style="margin:8px 0;cursor:pointer"><input type="checkbox" data-lo ${S.pick.lo ? 'checked' : ''} style="margin-right:6px">🍲 Es sobras de otra comida (no se compra de nuevo)</label>
   <div class="seg" style="margin:10px 0">${[['all', 'Catálogo'], ['fav', 'Favoritos'], ['hist', 'Historial']].map(t2 => `<button class="${tab === t2[0] ? 'on' : ''}" data-a="ptab" data-v="${t2[0]}">${t2[1]}</button>`).join('')}</div>
