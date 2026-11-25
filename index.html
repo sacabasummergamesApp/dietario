@@ -4,6 +4,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="format-detection" content="telephone=no"><link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjQwIiBmaWxsPSIjNTg3QTVEIi8+PGNpcmNsZSBjeD0iOTAiIGN5PSI5NiIgcj0iNDYiIGZpbGw9IiNGN0YxRTMiLz48cGF0aCBkPSJNOTAgMTQyYy00LTI0IDAtNDYgMTgtNjItMjIgMi0zNiAxOC00MCA0MCA4LTYgMTQtMTAgMjItMTItMTAgOC0xNCAyMC0xMiAzNHoiIGZpbGw9IiM1ODdBNUQiLz48Y2lyY2xlIGN4PSIxMTgiIGN5PSI2MiIgcj0iMTIiIGZpbGw9IiNDOTcwNEYiLz48L3N2Zz4="><link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjQwIiBmaWxsPSIjNTg3QTVEIi8+PGNpcmNsZSBjeD0iOTAiIGN5PSI5NiIgcj0iNDYiIGZpbGw9IiNGN0YxRTMiLz48cGF0aCBkPSJNOTAgMTQyYy00LTI0IDAtNDYgMTgtNjItMjIgMi0zNiAxOC00MCA0MCA4LTYgMTQtMTAgMjItMTItMTAgOC0xNCAyMC0xMiAzNHoiIGZpbGw9IiM1ODdBNUQiLz48Y2lyY2xlIGN4PSIxMTgiIGN5PSI2MiIgcj0iMTIiIGZpbGw9IiNDOTcwNEYiLz48L3N2Zz4=">
 <meta name="apple-mobile-web-app-title" content="Gestanut"><meta name="theme-color" content="#F7F1E3">
 <title>Gestanut · Recetario para el embarazo</title>
+<link rel="manifest" href="./manifest.webmanifest">
 <style>:root{--cream:#F7F1E6;--cream2:#EFE6D5;--sage:#7C9A7E;--sage-d:#587A5D;--sage-l:#DCE7D9;--terra:#C4694A;--terra-l:#F3D9CE;--ink:#2B2A26;--mute:#6F6B60;--card:rgba(255,255,255,.72);--line:rgba(60,55,40,.10);--ok:#4E8A57;--warn:#C98A22;--bad:#B5483A;--r:22px;--sh:0 6px 22px rgba(70,60,30,.10);--safe-b:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%}
@@ -2817,6 +2818,7 @@ render();
 (function () {
   const svgHref = (document.querySelector('link[rel=icon]') || {}).href || '';
   const mkManifest = png => { if (!/^https?:$/.test(location.protocol)) return; try {
+    if (document.querySelector('link[rel=manifest][href]')) return;
     const man = { name: 'Gestanut', short_name: 'Gestanut', start_url: location.href.split('#')[0], display: 'standalone', background_color: '#F7F1E3', theme_color: '#F7F1E3', lang: 'es', icons: [png ? { src: png, sizes: '180x180', type: 'image/png', purpose: 'any' } : null, svgHref ? { src: svgHref, sizes: 'any', type: 'image/svg+xml', purpose: 'any' } : null].filter(Boolean) };
     let l = document.querySelector('link[rel=manifest]'); if (!l) { l = document.createElement('link'); l.rel = 'manifest'; document.head.appendChild(l); } l.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(man)); } catch (e) { } };
   try {
@@ -2826,4 +2828,7 @@ render();
     im.onerror = () => mkManifest(null); im.src = svgHref;
   } catch (e) { mkManifest(null); }
 })();
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  navigator.serviceWorker.register('./sw.js').catch(e => console.error('No se pudo registrar el modo sin conexión:', e));
+}
 </script></body></html>
